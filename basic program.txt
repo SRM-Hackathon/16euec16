@@ -1,10 +1,30 @@
+#include <SoftwareSerial.h>
 #include "AS726X.h"
+
 AS726X sensor;
+
 void setup() {
   sensor.begin();
 }
 
 void loop() {
-  sensor.takeMeasurementsWithBulb();
-  sensor.printMeasurements();
+  int i,s=0,k=0;
+  //sensor.getR()=0;
+  for(i=0;i<=100;i++)
+  {
+sensor.enableBulb();
+  s=s+sensor.getR();
+   k=k+sensor.getS();
+   sensor.disableBulb();
+
+ //sensor.printMeasurements();
+  }
+ delay(4000);
+  s=s/101;
+  k=k/101;
+  Serial.println("r=");
+  Serial.print(s);
+  Serial.println("  s=");
+
+  s=0;k=0;
 }
