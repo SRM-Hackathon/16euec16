@@ -1,0 +1,10 @@
+#include "AS726X.h"
+AS726X sensor;
+void setup() {
+  sensor.begin();
+}
+
+void loop() {
+  sensor.takeMeasurementsWithBulb();
+  sensor.printMeasurements();
+}
