@@ -1,30 +1,125 @@
-#include <SoftwareSerial.h>
+
+#include <LiquidCrystal.h>
 #include "AS726X.h"
+//#include "Arduino.h"
+#include <Servo.h> 
+#include <SoftwareSerial.h>
+//#include <stdlib.h>
+
+int servoPin = 3; 
 
 AS726X sensor;
+const int rs = 12, en = 13, d4 = 8, d5 = 9, d6 =10, d7 = 11;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+String apiKey = "O4YXL90R0KBIOPUQ";
 
-void setup() {
+SoftwareSerial ser(5,6); // RX, TX
+
+void setup() {  
   sensor.begin();
+  
+  lcd.begin(16, 2); 
+ lcd.setCursor(1, 0);
+   lcd.print("Plastic Sorter");
+   delay(1000);
+   Serial.begin(115200);
+   ser.begin(9600);
+ser.println("AT+RST");  
 }
 
-void loop() {
-  int i,s=0,k=0;
+  void loop() {       
+  unsigned int a1,a,b,c,d,e,f;
+   
+       lcd.setCursor(1, 1);
+  lcd.print("sensor intailzing");
+
+
+  sensor.takeMeasurementsWithBulb();
+
+   int i,s=0,k=0;
   //sensor.getR()=0;
   for(i=0;i<=100;i++)
   {
 sensor.enableBulb();
-  s=s+sensor.getR();
-   k=k+sensor.getS();
+  a=a+sensor.getR();
+   b=b+sensor.getS();
    sensor.disableBulb();
 
  //sensor.printMeasurements();
   }
  delay(4000);
-  s=s/101;
-  k=k/101;
+  a=a/101;
+  b=b/101;
   Serial.println("r=");
-  Serial.print(s);
-  Serial.println("  s=");
+  Serial.print(a);
+  Serial.println("s=");
+Serial.print(b);
+  
+  lcd.clear();
+   lcd.setCursor(1, 0);
+   lcd.print("leaf predictor");
+// sensor.printMeasurements();
+  
+  if(a>47)
+  {
+      
+       lcd.setCursor(1, 1);
+       lcd.print("It is affected");
+          delay(1000);
+          Serial.print("bad leaf");
+          
+ 
+  }
+  else 
+  {
+    lcd.setCursor(1, 1);
+       lcd.print("It is healthy leaf");
+       
+       delay(1000);
+       Serial.print("good leaf");
+  }
+  
+  
+    
+     
+  delay(10000);
+  // TCP connection
+  String cmd = "AT+CIPSTART=\"TCP\",\"";
+  cmd += "184.106.153.149"; // api.thingspeak.com
+  cmd += "\",80";
+  ser.println(cmd);
 
-  s=0;k=0;
+  if(ser.find("Error")){
+    Serial.println("AT+CIPSTART error");
+    return;
+  }
+
+  // prepare GET string
+  String getStr = "GET /update?api_key=";
+  getStr += apiKey;
+  getStr +="&field1=";
+  getStr += String(a);
+  getStr +="&field2=";
+  getStr += String(b);
+  
+  getStr += "\r\n\r\n";
+
+  // send data length
+  cmd = "AT+CIPSEND=";
+  cmd += String(getStr.length());
+  ser.println(cmd);
+
+  if(ser.find(">")){
+    ser.print(getStr);
+  }
+  else{
+    ser.println("AT+CIPCLOSE");
+   
+    Serial.println("AT+CIPCLOSE");
+  }
+
+   lcd.setCursor(1, 1);
+       lcd.print("wait for 15s");
+  delay(16000);  
+  
 }
