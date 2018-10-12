@@ -113,7 +113,7 @@ Serial.print(b);
     ser.print(getStr);
   }
   else{
-    ser.println("AT+CIPCLOSE");
+    ser.println("AT+CIPCLOSE")
    
     Serial.println("AT+CIPCLOSE");
   }
